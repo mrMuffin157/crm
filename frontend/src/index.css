@@ -1,0 +1,2514 @@
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --border: #e2e5ea;
+  --text: #1a1d24;
+  --text-muted: #6b7280;
+  --accent: #3b5bfd;
+  --row-hover: #f0f2f8;
+  /* Softer, pastel-leaning versions of the ticket table's status badge hues (.badge-new/
+     .badge-closed/.badge-processfailed) — the badges' own saturated dark text (e.g. #1e40af)
+     reads as too heavy once it's plain text with no light background pill behind it. */
+  --stat-blue: #4d6fd1;
+  --stat-green: #3d9970;
+  --stat-red: #d9534f;
+  /* Dashboard stat-card backgrounds/text — pastel light-mode fills paired with a dark, legible
+     text color. Redefined (not just the light values reused) in the dark media query below so
+     the cards don't render as bright light-mode pills against a dark theme. */
+  --stat-card-blue-bg: #dbeafe;
+  --stat-card-blue-text: #1e40af;
+  --stat-card-green-bg: #dcfce7;
+  --stat-card-green-text: #166534;
+  --stat-card-red-bg: #fee2e2;
+  --stat-card-red-text: #991b1b;
+  --stat-card-amber-bg: #fef3c7;
+  --stat-card-amber-text: #92400e;
+  --stat-card-purple-bg: #ede9fe;
+  --stat-card-purple-text: #5b21b6;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161a;
+    --surface: #1c1f26;
+    --border: #2c303a;
+    --text: #e7e9ee;
+    --text-muted: #9aa0ab;
+    --accent: #7b93ff;
+    --row-hover: #232733;
+    --stat-blue: #93b4ff;
+    --stat-green: #6ee7a8;
+    --stat-red: #ff8a8a;
+    --stat-card-blue-bg: #1e2a4a;
+    --stat-card-blue-text: #93b4ff;
+    --stat-card-green-bg: #16332a;
+    --stat-card-green-text: #6ee7a8;
+    --stat-card-red-bg: #3a1f22;
+    --stat-card-red-text: #ff8a8a;
+    --stat-card-amber-bg: #3a2e14;
+    --stat-card-amber-text: #fbc65f;
+    --stat-card-purple-bg: #29224d;
+    --stat-card-purple-text: #c4b5fd;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.app {
+  max-width: 1800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== Sidebar ===== */
+
+.sidebar {
+  flex-shrink: 0;
+  width: 240px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.15s ease;
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* Pinned to the viewport instead of stretching/scrolling with .layout's height — without
+     align-self: flex-start, .layout's default align-items: stretch would force this to match
+     the (possibly much taller) .app content's height, leaving nothing for "sticky" to do. */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+}
+
+.sidebar-collapsed {
+  width: 52px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-collapsed .sidebar-header {
+  justify-content: center;
+  padding: 14px 8px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-version {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.sidebar-toggle {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  background: var(--row-hover);
+  color: var(--accent);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 2px;
+}
+
+/* Sits right after the Admin section (or Pages, for non-admins) in normal nav flow — extra
+   top margin + a divider line is the "a bit under" separation, not a pinned-to-bottom footer. */
+.sidebar-logout-block {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-username {
+  padding: 2px 10px 6px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-logout-leaf {
+  color: var(--text-muted);
+}
+
+.sidebar-logout-leaf:hover {
+  background: var(--row-hover);
+  color: var(--accent);
+}
+
+.sidebar-section-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 12px 10px 4px;
+}
+
+.sidebar-leaf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-leaf:hover {
+  background: var(--row-hover);
+}
+
+.sidebar-leaf-active {
+  background: var(--row-hover);
+  color: var(--text);
+  font-weight: 600;
+  /* inset box-shadow rather than a border so it doesn't shift the icon/label layout. */
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.sidebar-icon {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.sidebar-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Summary buttons under the Dashboards nav item — clicking one jumps to the Tickets page
+   pre-filtered to that status. Same icon-column/label-column layout and horizontal padding as
+   .sidebar-leaf so the number lines up under the nav icons and the label lines up under the nav
+   labels, instead of reading as an indented sub-section. */
+.sidebar-dashboard-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px;
+}
+
+.sidebar-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 2px 0;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.sidebar-stat:hover {
+  background: var(--row-hover);
+}
+
+.sidebar-stat-error {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--stat-red);
+  padding: 2px 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-stat-value {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.sidebar-stat-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-stat-blue { color: var(--stat-blue); }
+.sidebar-stat-green { color: var(--stat-green); }
+.sidebar-stat-red { color: var(--stat-red); }
+
+/* ===== Dashboard ===== */
+
+.dashboard-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Same colored box as before, just wider and now a 2-column grid internally: stat-card-main
+   (the original clickable big number/label) in the first column, and its channel breakdown in
+   the second, inside the same box rather than a separate one. The columns are percentages of
+   the card itself, not of whatever width stat-card-main happens to take, so the breakdown's
+   channel names start at the same 60% mark on every card regardless of how many digits the big
+   number has. */
+.stat-card {
+  display: grid;
+  grid-template-columns: 60% 1fr;
+  align-items: center;
+  flex: 1 1 320px;
+  padding: 20px 24px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-family: inherit;
+}
+
+/* Number and label share one line, baseline-aligned so the small label sits on the big
+   number's own baseline rather than being centered against its full 2.25rem line box. */
+.stat-card-main {
+  justify-self: start;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.stat-card-main:hover {
+  opacity: 0.8;
+}
+
+.stat-card-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-card-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* The breakdown list fills the card's second column, starting at the 60% mark above. */
+.stat-card-breakdown {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Two columns of its own: the channel name from the 60% mark, and a fixed-width count column
+   pinned to the right edge. Both are left-aligned text — the count column's width is what puts
+   it near the edge, so the digits themselves still line up on their left. */
+.stat-card-channel-row {
+  display: grid;
+  grid-template-columns: 1fr 2.5em;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.stat-card-channel-name {
+  opacity: 0.85;
+  min-width: 0;
+}
+
+/* Color is set on the whole card below (not just stat-card-value/-label like before), so every
+   descendant — including these link-buttons, which .link-button otherwise colors with
+   var(--accent) — inherits the card's own text color instead of the global accent color.
+   Left-aligned within its own column so every count starts at the same x regardless of digit
+   count, with justify-self keeping the button from stretching across that column. */
+.stat-card-channel-count.link-button {
+  color: inherit;
+  font-weight: 700;
+  justify-self: start;
+  text-align: left;
+}
+
+/* A card whose every channel is 0 (a clean Process Failed, say) would otherwise render an
+   empty right-hand column that reads as a load failure. */
+.stat-card-breakdown-empty {
+  font-size: 1.05rem;
+  opacity: 0.6;
+}
+
+.stat-card-breakdown .channel-breakdown-toggle.link-button {
+  color: inherit;
+  opacity: 0.75;
+  align-self: flex-start;
+}
+
+.stat-card-blue { background: var(--stat-card-blue-bg); color: var(--stat-card-blue-text); }
+.stat-card-green { background: var(--stat-card-green-bg); color: var(--stat-card-green-text); }
+.stat-card-red { background: var(--stat-card-red-bg); color: var(--stat-card-red-text); }
+.stat-card-amber { background: var(--stat-card-amber-bg); color: var(--stat-card-amber-text); }
+.stat-card-purple { background: var(--stat-card-purple-bg); color: var(--stat-card-purple-text); }
+
+/* ===== Dashboard channel breakdown widgets ===== */
+
+/* Heading over the Refund / Manual Handling stat cards. */
+.channel-breakdown-heading {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 24px 0 12px;
+}
+
+.channel-breakdown-toggle.link-button {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary, inherit);
+}
+
+/* ===== "Not built yet" placeholder ===== */
+
+.wip-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.wip-image-frame {
+  max-width: 320px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* clip-path crops the image's bottom white border. Measured directly from the source
+   JPEG's pixels (404x279): the white band starts at y≈259 (~92.8% down), so ~7.2% of the
+   height is border — 8% here for a small safety margin over the antialiased edge. */
+.wip-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  clip-path: inset(0 0 8% 0);
+}
+
+.wip-danger-box {
+  margin-top: 16px;
+  padding: 8px 22px;
+  background: #dc2626;
+  color: #fde047;
+  border: 2px solid #fde047;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.wip-caption {
+  margin-top: 20px;
+  font-size: 0.95rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.app-header h1 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+input, select, textarea {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* Dropdowns default to sizing off their selected option's text, which clips longer
+   status/action/reason labels. Give every <select> more room and a bigger click target. */
+select {
+  min-width: 220px;
+  width: 100%;
+  padding: 9px 14px;
+  font-size: 0.95rem;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.filter-field input {
+  min-width: 150px;
+}
+
+.filter-field select {
+  min-width: 220px;
+}
+
+.search-button {
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  height: 38px;
+}
+
+.search-button:hover {
+  opacity: 0.9;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.export-button {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.export-button:hover {
+  background: var(--row-hover);
+}
+
+.toolbar-row .pagination {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable-header:hover {
+  color: var(--text);
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.65rem;
+}
+
+.sort-icon-inactive {
+  opacity: 0.35;
+}
+
+.col-id-updated {
+  vertical-align: middle;
+}
+
+.id-updated-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.id-updated-line + .id-updated-line {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.error-banner {
+  background: #fdecea;
+  color: #7a1f1a;
+  border: 1px solid #f3c2bd;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.empty-state-banner {
+  background: var(--row-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.order-number-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.order-number-link {
+  color: var(--accent);
+  text-decoration: underline;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.external-link-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.external-link-icon:hover {
+  color: var(--accent);
+}
+
+/* The thin strip directly above the table, for controls that act on the table itself rather
+   than on the data in it (currently just Reset columns). Right-aligned so it reads as chrome
+   attached to the table's top-right corner, well away from the Create/Export actions. */
+.reset-columns-button {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.reset-columns-button:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--row-hover);
+}
+
+/* Disabled means the layout is already default — kept visible rather than hidden so the
+   affordance doesn't appear and vanish as columns are dragged. */
+.reset-columns-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.table-container {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+/* Toggled via the ↕️🔒 checkbox in the table header — bounds the table to the viewport so only
+   its own rows scroll (not the whole page), while thead's own position: sticky keeps the header
+   fixed at the top of this container instead of the browser window. */
+.table-container-scroll-locked {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+/* table-layout: fixed sizes every column from the <colgroup> that TicketColumnGroup renders
+   (ticketColumns.jsx), NOT from percentages here — the 9 content columns are user-resizable
+   (drag a header divider) and user-reorderable (right-click a header), so their widths are
+   real pixels held in React state/localStorage and can't live in this stylesheet at all.
+   The 3 leading icon columns are fixed-pixel too (LEADING_COLUMN_WIDTHS) and never move.
+   The table carries min-width: <sum of all column widths> inline, so dragging columns wider
+   than the viewport scrolls .table-container sideways instead of squeezing them back; the
+   trailing unsized spacer column absorbs the slack when the viewport is wider than that sum.
+
+   Only per-column ALIGNMENT lives here now, keyed by the stable .th-<column key> class rather
+   than nth-child — a reordered column keeps its own alignment, which position-based selectors
+   could never do. Scoped with > through thead/tr so none of it reaches the Ticket History
+   table nested inside an expanded row (a plain descendant selector does, since that table
+   lives in .ticket-table's own tbody). */
+.ticket-table > thead > tr > th.th-id { text-align: right; }
+.ticket-table > thead > tr > th.th-reason { padding-left: 20px; } /* matches .col-reason */
+.ticket-table > thead > tr > th.th-orderNumber { text-align: left; padding-left: 20px; }
+.ticket-table > thead > tr > th.th-lineItems { text-align: left; }
+.ticket-table > thead > tr > th.th-source { text-align: center; }
+.ticket-table > thead > tr > th.th-action { text-align: center; }
+.ticket-table > thead > tr > th.th-status { text-align: center; }
+
+/* The vertical dividers in the header bar: every header cell but the trailing spacer and the
+   leading icon strip (see below) gets a right-hand rule, and each reorderable column's rule
+   doubles as the grab target for resizing it (.column-resize-handle sits on top of the line).
+   position: relative is what lets that absolutely-positioned handle anchor to its own cell. */
+.ticket-table > thead > tr > th {
+  position: relative;
+  border-right: 1px solid var(--border);
+}
+
+.ticket-table > thead > tr > th.col-spacer {
+  border-right: none;
+}
+
+/* ...except between the leading icon columns themselves. Those 3 cells are one undivided
+   action strip, not 3 separate columns the user can resize or reorder, so ruling them apart
+   just adds lines that don't mean anything. The last of them keeps its rule: that one is the
+   # column's left bound, where the real (adjustable) columns start. */
+.ticket-table > thead > tr > th.col-quick-actions,
+.ticket-table > thead > tr > th.col-lock-actions {
+  border-right: none;
+}
+
+.column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  /* Invisible until hovered — the header's own border-right already draws the divider, so a
+     second always-on line would just read as a double rule. */
+  background: transparent;
+}
+
+.column-resize-handle:hover {
+  background: var(--accent);
+  opacity: 0.55;
+}
+
+/* Drag-to-reorder feedback. The dragged cell fades; the cell being hovered draws a thick accent
+   rule on the edge the column would land on — as an inset shadow rather than a border, since a
+   border would resize the cell mid-drag and shift every column after it.
+   grab/grabbing lives on the label area only: the resize handle keeps its own col-resize
+   cursor, which is the honest signal for which of the two gestures a press will start. */
+.ticket-table > thead > tr > th.ticket-col-header {
+  cursor: grab;
+}
+
+.ticket-table > thead > tr > th.column-dragging {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.ticket-table > thead > tr > th.column-drop-before {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.ticket-table > thead > tr > th.column-drop-after {
+  box-shadow: inset -3px 0 0 var(--accent);
+}
+
+/* Set on <body> for the duration of a drag: keeps the col-resize cursor while the pointer is
+   outside the 7px handle, and stops the drag from selecting the header text it passes over. */
+body.column-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Header right-click menu (ColumnContextMenu). position: fixed against the click point, which
+   the component clamps to the viewport. */
+.column-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 168px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  font-size: 0.8rem;
+}
+
+.column-menu-title {
+  padding: 4px 8px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.column-menu-item {
+  display: block;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--text);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.column-menu-item:hover:not(:disabled) {
+  background: var(--row-hover);
+}
+
+.column-menu-item:disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.column-menu-separator {
+  margin: 4px 2px;
+  border-top: 1px solid var(--border);
+}
+
+/* Trailing slack column — no content, no divider, and no padding of its own so it can shrink
+   to nothing once the real columns fill the container. */
+.col-spacer {
+  padding: 0 !important;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  text-align: left;
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-reason {
+  white-space: pre-line;
+  padding-left: 20px;
+}
+
+/* Default: full wrap, instead of the base tbody td rule's single-line cutoff. white-space:
+   normal on the td so the row stretches to fit however many lines the description needs. */
+.col-description {
+  white-space: normal;
+}
+
+/* Checked (see descriptionToggle in App.jsx): clamp back to 2 lines with an ellipsis — the
+   clamp lives on the inner span, not the td, since -webkit-box (or flex) directly on a table
+   cell confuses Chromium's row-height calculation (same reasoning as the .col-quick-actions
+   comment above). */
+.ticket-table-description-collapsed .description-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The detail-expand row and its contents deliberately wrap normally — only the main
+   table's single-line cells need the fixed-width truncation above. */
+.ticket-detail-row td {
+  white-space: normal;
+}
+
+.ticket-row {
+  cursor: pointer;
+}
+
+/* Toggled via the 🦓 checkbox in the table header — placed before .ticket-row:hover below so
+   hover still wins the cascade tie (same specificity) and remains visible on striped rows. */
+.ticket-table-striped .ticket-row-odd {
+  background: var(--bg);
+}
+
+.ticket-row:hover {
+  background: var(--row-hover);
+}
+
+/* No flex here (and margin, not gap, for the spacing between icons): a flex-display <td>
+   stops participating in the table's row-height stretching, so its border box stays sized
+   to its own content instead of the row's full height — its bottom border then sits above
+   every other column's, reading as "not aligned with the rest of the table". Plain
+   table-cell display (the default) plus the tbody td rule's vertical-align: top gets the
+   same top-aligned look while still stretching to the row's height like every other cell. */
+/* text-overflow: clip (not the tbody td default of ellipsis) — these cells hold icons, not
+   text, and even a stray sub-pixel of overflow would otherwise render "…" over an icon
+   instead of just quietly clipping it. */
+.col-quick-actions {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  padding-right: 4px;
+  text-align: right;
+}
+
+.col-quick-actions > * {
+  margin-right: 6px;
+}
+
+.col-quick-actions > *:last-child {
+  margin-right: 0;
+}
+
+/* The 🦓 toggle overrides its header cell's usual right-align (meant for the body rows' icon
+   group) so it sits at the far left of the table instead of crowding the ↕️🔒 toggle next to it. */
+thead .col-quick-actions {
+  text-align: left;
+  padding-left: 10px;
+}
+
+/* Same reasoning as .col-quick-actions above — plus two (or more) adjacent flex-display
+   <td>s in the same row confuse Chromium's row-height calculation (the row balloons to
+   ~3x height), which is what a flex version of these cells triggered. These cells only
+   ever hold one inline child (a span/button group), so text-align gets the same
+   horizontal alignment without touching `display`. */
+.col-lock-actions {
+  white-space: nowrap;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: clip;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.col-comments {
+  white-space: nowrap;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: clip;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* The 🦓 / ↕️🔒 checkboxes sitting in the otherwise-empty col-quick-actions/col-lock-actions
+   header cells. */
+.table-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.table-toggle input {
+  cursor: pointer;
+}
+
+/* Extra breathing room between the 🦓 and ↕️🔒 toggles — they sit in adjacent header cells
+   that are otherwise packed tight for their icon-column body content. */
+.col-lock-actions .table-toggle {
+  margin-left: 6px;
+}
+
+.star-toggle {
+  cursor: pointer;
+  color: #e0a800;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+/* Same glyph for lit/dim states (no clean filled/outline bulb pair in unicode) — a background
+   chip carries the lit-vs-dim distinction instead, since grayscale + low opacity alone left the
+   dim state nearly invisible against the row background. */
+.lightbulb-toggle {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.col-quick-actions > .lightbulb-toggle:last-child {
+  margin-right: 6px;
+}
+
+.lightbulb-lit {
+  background: #fef3c7;
+  opacity: 1;
+}
+
+.lightbulb-dim {
+  background: #9ca3af;
+  filter: grayscale(1);
+  opacity: 0.8;
+}
+
+.col-id {
+  color: var(--text-muted);
+  text-align: right;
+  vertical-align: middle;
+}
+
+.ticket-channel {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-align: left;
+}
+
+.order-number {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-customer-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.order-customer-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.copy-address-button {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.copy-address-button:hover {
+  color: var(--accent);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.badge-new { background: #dbeafe; color: #1e40af; }
+.badge-processing { background: #fef3c7; color: #92400e; }
+.badge-closed { background: #dcfce7; color: #166534; }
+.badge-cancelled { background: #e5e7eb; color: #4b5563; }
+.badge-processfailed { background: #fee2e2; color: #991b1b; }
+.badge-warn { background: #fee2e2; color: #991b1b; }
+.badge-neutral { background: #e5e7eb; color: #6b7280; }
+
+/* Action column color scheme (moved here from Status, which is now plain text):
+   Replacement=blue, Refund=red, ManualHandling=green, NoAction=black. */
+.badge-action-replacement { background: #93c5fd; color: #1e3a8a; }
+.badge-action-refund { background: #fca5a5; color: #7f1d1d; }
+.badge-action-manual { background: #86efac; color: #14532d; }
+.badge-action-none { background: #9ca3af; color: #000000; }
+
+.lock-indicator {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.col-action {
+  text-align: center;
+}
+
+.col-status {
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: center;
+}
+
+.status-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.status-close-button, .status-cancel-button {
+  border: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.status-close-button {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-close-button:hover {
+  background: #bbf7d0;
+}
+
+.status-cancel-button {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-cancel-button:hover {
+  background: #fecaca;
+}
+
+.remove-item-button {
+  border: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  line-height: 1;
+  padding: 4px 8px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.remove-item-button:hover {
+  background: #fecaca;
+}
+
+.ticket-row-locked {
+  opacity: 0.6;
+}
+
+.ticket-row-locked:hover {
+  opacity: 0.85;
+}
+
+.ticket-detail-row td {
+  background: var(--row-hover);
+}
+
+.ticket-detail {
+  padding: 4px 8px 12px;
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.ticket-detail p {
+  margin: 0 0 14px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 20px;
+}
+
+/* Long unbroken values (hex-style customer/address IDs) would otherwise overflow past
+   their grid column and visually run into the next label — break them onto multiple
+   lines instead so each field stays inside its own column. */
+.detail-grid > div {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.detail-section {
+  margin-top: 16px;
+}
+
+/* ===== Sales Order detail fields (SalesOrdersPage.jsx) ===== */
+
+/* Section headings on this page are real headings, not another field label. Every block on the
+   page — the two field grids and the five tables under them — was titled with the same 0.72rem
+   muted uppercase .detail-label its own fields use, so nothing marked where one section ended
+   and the next began. Overrides .detail-label rather than replacing it (same specificity, so
+   this must stay below it in the file) since both classes are on the same span and the layout
+   bits — display: block, the muted colour for a plain label — still come from there. */
+.so-section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 10px;
+}
+
+/* Buyer / Recipient's title is inside a .detail-section-header flex row (it shares the line
+   with Disable Review), where a bottom margin pulls it off centre — that row's own
+   margin-bottom does the spacing instead. */
+.detail-section-header .so-section-title {
+  margin-bottom: 0;
+}
+
+/* The gap between every block on this page, over .detail-section's own 16px — one even rhythm
+   from the Order grid down to the Linked Tickets table. */
+.so-section {
+  margin-top: 40px;
+}
+
+/* Linked CRM Customer is the one block that sits OUTSIDE the .ticket-detail wrapper holding the
+   order's own sections, so it also inherits that wrapper's 12px bottom padding and would measure
+   52px where every other boundary measures 40. .ticket-detail is shared with the ticket table's
+   expanded row, so the adjustment goes on this side of the boundary rather than on its padding. */
+.ticket-detail + .so-section {
+  margin-top: 28px;
+}
+
+
+/* The Order and Buyer / Recipient blocks. Fixed pixel columns, laid out by grid-area name — not
+   the auto-fit .detail-grid the rest of the app uses, which gave a 38-character marketplace
+   email exactly as much room as "$0.00" and wrapped it onto two lines.
+   Every width here is deliberate, sized against real orders so an email and a full ship-to
+   address each fit on one line; the layout is stated in the two grid-template-areas below and
+   nowhere else, so moving a field is an edit to one string. */
+
+/* The columns sum to 1600px, which is wider than the page has at a 1750px window with the
+   sidebar open (~1446px) and narrower than it with the sidebar collapsed (~1634px). This is what
+   keeps the shortfall a sideways scroll on the block itself rather than on the whole page, which
+   would drag the header and the ticket table below out of view with it. */
+.so-fields-scroll {
+  overflow-x: auto;
+  margin-top: 6px;
+  padding-bottom: 2px;
+}
+
+.so-fields {
+  display: grid;
+  /* No column gap: the widths above ARE the column pitch, so each field's own padding-right is
+     what keeps its value off the next column's label. */
+  column-gap: 0;
+  row-gap: 16px;
+}
+
+/*  Amazon Order ID  |  Merchant Order ID  |  Status  |  Sales Channel  |  Fulfillment Type
+ *  Date Purchased   |  Date Shipped       |  Grand $ |  Shipping Fee   |  Tax Fee
+ *
+ * The two dates sit under the two ids, and the three money fields under the three 250px
+ * columns. */
+.so-fields-order {
+  grid-template-columns: 350px 500px 250px 250px 250px;
+  grid-template-areas:
+    "amazonOrderId merchantOrderId status     salesChannel fulfillmentType"
+    "datePurchased dateShipped     grandTotal shippingFee  taxFee";
+}
+
+/*  Buyer Name      |  Buyer Email       |  Review Disabled
+ *  Recipient Name  |  Ship-To Address   |  [Disable Review]
+ *
+ * The two names stack in one 350px column and the two long address-ish fields in one 1000px
+ * column, which is what lets the email and the ship-to address both run on a single line. The
+ * Disable Review button is a grid cell of its own, directly under the Review Disabled value it
+ * acts on; the row collapses to two cells once the flag is set and the button stops rendering. */
+.so-fields-buyer {
+  grid-template-columns: 350px 1000px 250px;
+  grid-template-areas:
+    "buyerName     buyerEmail    reviewDisabled"
+    "recipientName shipToAddress disableReview";
+}
+
+.so-field {
+  min-width: 0;
+  padding-right: 20px;
+}
+
+.so-field-amazonOrderId { grid-area: amazonOrderId; }
+.so-field-merchantOrderId { grid-area: merchantOrderId; }
+.so-field-status { grid-area: status; }
+.so-field-salesChannel { grid-area: salesChannel; }
+.so-field-fulfillmentType { grid-area: fulfillmentType; }
+.so-field-datePurchased { grid-area: datePurchased; }
+.so-field-dateShipped { grid-area: dateShipped; }
+.so-field-grandTotal { grid-area: grandTotal; }
+.so-field-shippingFee { grid-area: shippingFee; }
+.so-field-taxFee { grid-area: taxFee; }
+.so-field-buyerName { grid-area: buyerName; }
+.so-field-buyerEmail { grid-area: buyerEmail; }
+.so-field-recipientName { grid-area: recipientName; }
+.so-field-shipToAddress { grid-area: shipToAddress; }
+.so-field-reviewDisabled { grid-area: reviewDisabled; }
+.so-field-disableReview { grid-area: disableReview; }
+
+/* Bottom-aligned so the button sits on the same line as the values beside it — the grid
+   stretches every cell to the full row height, which would otherwise float it up level with
+   their labels. align-items rather than align-self, since the flex box is the cell itself. */
+.so-field-disableReview {
+  display: flex;
+  align-items: flex-end;
+}
+
+/* The value and whatever trails it (a copy button, the ↗ Seller Central link, the buyer's
+   order-count link) are one flex row with a real gap. As plain inline content the icon renders
+   glued to the value's last character, and a value long enough to wrap drops the icon alone
+   onto a line of its own. */
+.so-field-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Only the text gives ground; the buttons keep their size and stay clickable. Values here are
+   sized to fit on one line, so a column that is still too narrow for some other order's data
+   truncates rather than reflowing the whole grid — the full value is on the title tooltip. */
+.so-field-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.so-field-value > *:not(.so-field-text) {
+  flex-shrink: 0;
+}
+
+
+.line-item-list, .comment-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.line-item-list li {
+  display: flex;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.line-item-sku {
+  font-weight: 600;
+  min-width: 90px;
+}
+
+.line-item-name {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.line-item-qty {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Only rendered on a Refund ticket (see TicketTable's isRefund) — the money on the line, so it
+   carries the ticket's own emphasis rather than .line-item-qty's muted grey, and leads the row
+   the same way it leads the table cell's .line-item-summary-price. min-width matches
+   .line-item-sku's so the skus below still line up as one column. */
+.line-item-refund {
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+/* margin-bottom, and a gap of its own: the trailing action (+ New Ticket on the Sales Order
+   page's Linked Tickets section, Add comment in a ticket's detail row) otherwise sits directly
+   on top of the table it belongs to, with only .table-scroll's own 6px between them. */
+.detail-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+/* .detail-label's own bottom margin is for a label stacked above its value; in this flex row it
+   just pulls the label off centre. */
+.detail-section-header .detail-label {
+  margin-bottom: 0;
+}
+
+/* Groups the section label with an extra control (the Linked Tickets section's Reset columns
+   button) on the header's left side, so justify-content: space-between above still pushes just
+   the trailing action (+ New Ticket) to the right instead of splitting all 3 items apart. */
+.detail-section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-comment-detail-button {
+  border: none;
+  background: var(--row-hover);
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.add-comment-detail-button:hover {
+  opacity: 0.85;
+}
+
+.comment-list li {
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.comment-meta {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.detail-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+/* Close Ticket Import page's file input — the browser's own "No file chosen" text sits flush against the
+   file-picker button by default; push it over a bit so it doesn't read as glued on. */
+.create-ticket-form input[type="file"]::file-selector-button {
+  margin-right: 8px;
+}
+
+.detail-note {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+.history-disclosure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.history-disclosure .detail-label {
+  margin-bottom: 0;
+}
+
+.history-disclosure-arrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.history-disclosure-arrow-open {
+  transform: rotate(180deg);
+}
+
+/* 95% of the ticket table's own width, centered in the remaining space — .ticket-detail
+   already spans the full table width via its colSpan, so this comes out much wider than
+   the .modal-wide pop-out. */
+.history-panel {
+  width: 95%;
+  margin: 8px auto 0;
+}
+
+.history-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8rem;
+  table-layout: fixed;
+}
+
+/* Explicit per-column widths — this table is a plain fixed-layout table (not user-resizable
+   like the ticket table above), so percentages here are still the simplest thing that works.
+   Keep it in sync with the <thead> row in the Ticket History panel in App.jsx. */
+.history-table thead th:nth-child(1) { width: 10%; } /* When */
+.history-table thead th:nth-child(2) { width: 6%; }  /* Actor */
+.history-table thead th:nth-child(3) { width: 8%; } /* Class */
+.history-table thead th:nth-child(4) { width: 5%; }  /* Event */
+.history-table thead th:nth-child(5) { width: 9%; } /* Property */
+.history-table thead th:nth-child(6) { width: 30%; } /* Old Value */
+.history-table thead th:nth-child(7) { width: 30%; } /* New Value */
+
+.history-table th, .history-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.history-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  margin-top: 6px;
+}
+
+.detail-subtable {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.detail-subtable th, .detail-subtable td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.detail-subtable th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Explicit per-column widths — keep this in sync with the <thead> row in UserTable in
+   MembersPage.jsx. Scoped to
+   .member-table rather than the shared .detail-subtable, which other pages reuse with
+   different column counts. */
+.member-table { table-layout: fixed; }
+.member-table thead th:nth-child(1) { width: 10%; } /* Username */
+.member-table thead th:nth-child(2) { width: 15%; } /* Name / Email */
+.member-table thead th:nth-child(3) { width: 20%; } /* Channels */
+.member-table thead th:nth-child(4) { width: 20%; } /* Granted */
+.member-table thead th:nth-child(5) { width: 25%; } /* Actions */
+
+/* Explicit per-column widths for the Scheduled Jobs table (QuartzJobsPage.jsx). Keep this in
+   sync with that file's <thead> row. Scoped to .quartz-jobs-table rather than .member-table —
+   see the comment above on why these tables don't share one column-width class. */
+.quartz-jobs-table { table-layout: fixed; }
+.quartz-jobs-table thead th:nth-child(1) { width: 15%; } /* Job Name */
+.quartz-jobs-table thead th:nth-child(2) { width: 15%; } /* Trigger Name */
+.quartz-jobs-table thead th:nth-child(3) { width: 15%; } /* Start Time */
+.quartz-jobs-table thead th:nth-child(4) { width: 15%; } /* NextFireTime */
+.quartz-jobs-table thead th:nth-child(5) { width: 10%; } /* Status */
+.quartz-jobs-table thead th:nth-child(6) { width: 10%; } /* Type */
+.quartz-jobs-table thead th:nth-child(7) { width: 10%; } /* Misfire */
+.quartz-jobs-table thead th:nth-child(8) { width: 10%; } /* Schedule */
+.quartz-jobs-table thead th:nth-child(9) { width: 10%; } /* Actions */
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px !important;
+}
+
+.app-footer {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.col-line-items {
+  text-align: left;
+  white-space: normal;
+}
+
+/* The 'collapse' toggle rides inside whichever header cell the Line Items/Description column
+   currently occupies (see lineItemsToggle/descriptionToggle in App.jsx). display: flex on the
+   header cell itself would break the table's column-width layout the same way
+   .col-quick-actions/.col-description already warn about above — it stays a plain table-cell,
+   with the toggle label itself carrying the inline-flex layout. */
+.th-lineItems .table-toggle,
+.th-description .table-toggle {
+  margin-left: 8px;
+  gap: 3px;
+  font-size: 0.68rem;
+}
+
+.th-lineItems .table-toggle input,
+.th-description .table-toggle input {
+  width: 11px;
+  height: 11px;
+}
+
+/* Default (checkbox unchecked): qty/sku/name flow as one plain-text block so a long name
+   wraps together with the sku like a single sentence, instead of each hanging off its own
+   flex column. */
+.line-item-summary {
+  display: block;
+}
+
+.line-item-summary + .line-item-summary {
+  margin-top: 4px;
+}
+
+.line-item-summary-qty {
+  color: var(--text-muted);
+  margin-right: 6px;
+}
+
+.line-item-summary-sku {
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+/* Refund tickets only: the per-line amount leads the sku, reading as
+   "1x $4.00 BO-29B-W Product Name", with the ticket's own total on its own trailing line. */
+.line-item-summary-price {
+  font-weight: 600;
+  white-space: nowrap;
+  margin-right: 6px;
+}
+
+.line-item-summary-name {
+  color: var(--text-muted);
+}
+
+.line-item-summary-total {
+  margin-top: 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Checked: collapse back to the original single-line, ellipsis-truncated look — qty pinned to
+   a fixed-width column and sku never shrinking, so only the name itself truncates. */
+.ticket-table-line-items-collapsed .line-item-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.ticket-table-line-items-collapsed .line-item-summary-qty {
+  flex: 0 0 28px;
+  margin-right: 0;
+}
+
+.ticket-table-line-items-collapsed .line-item-summary-sku,
+.ticket-table-line-items-collapsed .line-item-summary-price {
+  flex-shrink: 0;
+  margin-right: 0;
+}
+
+.ticket-table-line-items-collapsed .line-item-summary-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-order {
+  text-align: left;
+  padding-left: 20px;
+}
+
+.col-source {
+  color: var(--text-muted);
+  text-align: center;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.source-cell {
+  display: inline-flex;
+  align-items: baseline;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* State-then-system, tab-separated on one line — only when both codes are already 2
+   letters (see the compact check in App.jsx). */
+.source-cell-compact {
+  align-items: baseline;
+}
+
+/* Otherwise stacked, state on top — either code ran longer than 2 letters. */
+.source-cell-stacked {
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.source-code {
+  min-width: 34px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.source-state {
+  flex-shrink: 0;
+  color: var(--text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.source-cell-stacked .source-state {
+  max-width: 100%;
+}
+
+/* A bare '\t' text node between two flex-item spans gets collapsed away entirely (flexbox
+   drops whitespace-only anonymous items) — wrapping it in its own white-space: pre element
+   keeps the actual tab character instead of silently rendering no gap at all. The browser's
+   default tab-size is 8 (character widths), which reads as a huge, broken-looking gap at this
+   font size — 2 keeps it a modest tab-sized gap instead. */
+.source-tab {
+  white-space: pre;
+  tab-size: 2;
+}
+
+.comment-count-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-count-number {
+  margin-right: 4px;
+}
+
+.add-comment-button {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+}
+
+.add-comment-button:hover {
+  color: var(--accent);
+}
+
+.edit-button {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 6px 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-right: 0;
+}
+
+.edit-button:hover {
+  background: var(--row-hover);
+  color: var(--accent);
+}
+
+/* Reserves the button's own box (visibility:hidden, unlike display:none) so locked rows'
+   star/lightbulb icons still line up with unlocked rows' instead of shifting left. */
+.edit-button:disabled {
+  visibility: hidden;
+  cursor: default;
+}
+
+.pagination {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.pagination-summary {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* The page-number window plus the jump field, on their own line. */
+.pagination-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 24px;
+}
+
+/* Sits under .pagination-row: the optional `leading` slot (the Tickets page's Reset columns
+   button) followed by the "Showing …" summary. */
+.pagination-summary-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* :not(.reset-columns-button) so the Reset columns button living in the row's `leading` slot
+   keeps its own smaller chrome — this rule is a class+element and would otherwise outrank
+   .reset-columns-button's single class and inflate it to page-button size. */
+.pagination button:not(.reset-columns-button) {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.pagination button:not(.reset-columns-button):disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Scoped under .pagination-buttons (two classes) rather than just .page-number (one class)
+   so this reliably outranks ".pagination button"'s padding — same specificity trick applies
+   to .page-current/.page-ellipsis below. Fixed `width` (not min-width) so "1", "50", and
+   "8443" all render as the same size button. */
+.pagination-buttons .page-number {
+  width: 42px;
+  padding: 6px 0;
+  text-align: center;
+}
+
+/* visibility (not display:none) so the out-of-bounds button still reserves its slot —
+   the row of jump buttons stays a fixed layout instead of reflowing as you navigate. */
+.page-number-hidden {
+  visibility: hidden;
+}
+
+/* The current-page indicator is a span, not a button — it's never itself clickable, so it
+   shouldn't pick up the button `:disabled` dimming the way an out-of-bounds jump button does. */
+.page-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.pagination-buttons .page-current {
+  width: 42px;
+  padding: 6px 0;
+}
+
+/* Marks the (visually) biggest gap, between the core jump-button cluster and First/Last —
+   shown only when First/Last themselves are shown (see showFirst/showLast in App.jsx). */
+.page-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  color: var(--text-muted);
+}
+
+/* Extra spacing on top of .pagination-buttons' base `gap`, marking the boundary between
+   First/Last+"…" and the 10-number window — everything inside that window uses the uniform
+   base gap only. */
+.page-gap-outer {
+  margin-left: 24px;
+}
+
+.page-jump-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-jump-input {
+  width: 70px;
+  padding: 6px 8px;
+  text-align: center;
+}
+
+.page-jump-submit {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.page-jump-submit:hover {
+  background: var(--row-hover);
+}
+
+/* Create ticket + edit modal forms */
+
+.create-ticket-toggle {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.form-grid label, .description-field, .full-field, .address-row-split label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* The global `select { min-width: 220px }` (sized for the filter bar's own dropdowns) is
+   wider than a narrow grid cell here — e.g. Status in a 4-up row — and overflows into the
+   next column. Grid cells should size purely off the grid track, not fight it. */
+.form-grid select, .full-field select {
+  min-width: 0;
+}
+
+.checkbox-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.member-channel-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  grid-template-rows: repeat(2, auto);
+  gap: 6px;
+  max-width: 480px;
+}
+
+.member-channel-toggle {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 6px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  cursor: pointer;
+  text-align: center;
+  transition: filter 0.1s ease;
+}
+
+.member-channel-toggle:hover {
+  filter: brightness(0.96);
+}
+
+.member-channel-toggle-on {
+  background: var(--stat-card-green-bg);
+  color: var(--stat-card-green-text);
+  border-color: var(--stat-green);
+}
+
+.member-channel-save, .member-channel-cancel {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.member-channel-save {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+}
+
+.member-channel-save:hover {
+  opacity: 0.9;
+}
+
+.member-channel-cancel {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.member-channel-toggle-off {
+  background: var(--stat-card-red-bg);
+  color: var(--stat-card-red-text);
+  border-color: var(--stat-red);
+}
+
+.description-field, .full-field {
+  margin-bottom: 14px;
+}
+
+.description-field textarea, .full-field select, .full-field textarea {
+  width: 100%;
+}
+
+/* Inline pair for the Starred / Out of Warranty checkboxes, outside .form-grid. */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+/* Order Number/Customer Name/Email — a FIXED 3-column grid (unlike .form-grid's auto-fit)
+   so that omitting Order # within a sales order (see TicketFormFields' withinSalesOrder)
+   leaves Customer Name/Email sitting in their usual 1st/2nd column slots instead of
+   stretching to fill the row, matching the legacy form's own layout in that context. */
+.contact-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.contact-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Customer Address block: Name + Address Line 1 as an asymmetric 1/3 + 2/3 row, matching
+   the legacy form's grouping; Address Line 2/City/State and Zip/Country/Phone reuse
+   .form-grid, which naturally renders as three equal columns for a 3-item row. */
+.address-row-split {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(220px, 2fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.create-ticket-message {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+/* Export button's own empty-export message (App.jsx) fades itself out rather than sitting in
+   the toolbar indefinitely — toggled on 0.5s after the message appears, timed to finish
+   fading exactly when the message clears from state. */
+.create-ticket-message.fade-out {
+  opacity: 0;
+}
+
+.create-ticket-submit {
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.create-ticket-submit:hover {
+  opacity: 0.9;
+}
+
+/* Password fields with a show/hide toggle (user creation, profile password change) */
+
+.password-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.password-field input {
+  flex: 1;
+}
+
+.password-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 0.9rem;
+}
+
+.password-toggle:hover {
+  background: var(--row-hover);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(49, 58, 70, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  padding: 20px;
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* The Create/Edit Ticket "pop out" — closer to Bootstrap's modal-lg (800px) than the plain
+   .modal default, since its Action-dependent blocks (item tables, address form) need a bit
+   more room than a single narrow column, without ballooning far past the legacy form's width. */
+.modal-wide {
+  max-width: 880px;
+  font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* TicketHistoryModal sets its own inline max-width to match .history-panel's measured width
+   exactly (see that component) — this class only supplies a fallback for the brief instant
+   before that measurement lands, or the rare case .ticket-detail isn't found at all. Wide
+   enough that .history-table's shared column percentages aren't cramped even as a fallback. */
+.modal-history {
+  max-width: 1200px;
+}
+
+/* Legacy legacy-app form's own theme values (Bootstrap "Creative" theme, confirmed against real
+   screenshots) — scoped to this modal only, by explicit choice, rather than the app's own
+   theme tokens (--text-muted/--accent/etc.) which stay as-is everywhere else. The legacy
+   modal wraps everything in its own `text-dark` class, so labels and field values share the
+   same dark, bold-ish (Nunito) look — not a muted-label/dark-value split. */
+.modal-wide .form-grid label,
+.modal-wide .description-field,
+.modal-wide .full-field,
+.modal-wide .address-row-split label,
+.modal-wide .checkbox-field,
+.modal-wide .contact-row label {
+  color: #474d56;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.modal-wide input,
+.modal-wide select,
+.modal-wide textarea {
+  color: #474d56;
+  border-radius: 4px;
+}
+
+.modal-wide .create-ticket-submit {
+  background: #3688fc;
+  border-radius: 3px;
+}
+
+.modal-wide .create-ticket-submit:hover {
+  background: #2f78de;
+  opacity: 1;
+}
+
+.modal-wide .modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.item-rows {
+  margin-top: 6px;
+}
+
+/* Legacy's item tables are `table table-striped table-bordered table-hover` — full grid
+   lines and zebra striping, not just the plain borderless-list look .detail-subtable uses
+   elsewhere (Sales Orders / Members). Scoped to .item-rows so those other pages are untouched. */
+.item-rows table {
+  border: 1px solid var(--border);
+}
+
+.item-rows th, .item-rows td {
+  border: 1px solid var(--border);
+}
+
+.item-rows tbody tr:nth-child(odd) {
+  background: var(--row-hover);
+}
+
+.item-rows tbody tr:hover {
+  background: var(--border);
+}
+
+.item-qty-input {
+  width: 70px;
+}
+
+/* Refund line-item picker (RefundItemRows) */
+.item-amount-input {
+  width: 90px;
+}
+
+.refund-picker-toolbar {
+  margin-bottom: 8px;
+}
+
+.form-error-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.modal-cancel {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+}
+
+.toast {
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Login screen ===== */
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 340px;
+  padding: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.login-brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.login-subtitle {
+  margin: -8px 0 4px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.login-field input {
+  width: 100%;
+}
+
+.login-submit {
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.login-submit:hover {
+  opacity: 0.9;
+}
+
+.login-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-local-link {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--accent);
+}
+
+/* ===== Members page ===== */
+
+.member-actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  white-space: normal;
+}
+
+.member-action-button {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.member-action-button:hover {
+  background: var(--row-hover);
+}
+
+.member-action-danger {
+  color: #b91c1c;
+  border-color: #f3c2bd;
+}
+
+.member-action-danger:hover {
+  background: #fdecea;
+}
+
+.member-you-badge {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--row-hover);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.reset-password-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reset-password-form input {
+  width: 140px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.member-row-error {
+  color: #b91c1c;
+  font-size: 0.76rem;
+}
+
+/* A button that reads as a link — the Customer View's order-number cells and the Sales Order
+   page's buyer order count. Both navigate within the SPA rather than to a URL, so
+   they must stay <button>s for keyboard/screen-reader semantics while looking like the <a>s
+   beside them. */
+.link-button {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-button:hover {
+  opacity: 0.8;
+}
+
+/* Sits on the Buyer Name line, after the name itself, so the count reads as an attribute of
+   that buyer rather than as its own labelled field. */
+.buyer-order-count {
+  margin-left: 8px;
+  font-size: 0.8rem;
+}
+
+.asin-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.asin-link:hover {
+  text-decoration: underline;
+}
